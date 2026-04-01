@@ -4,6 +4,11 @@ if 'test' not in globals():
     from mage_ai.data_preparation.decorators import test
 
 import pandas as pd
+import requests
+import logging
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 @data_loader
 def load_data(*args, **kwargs):

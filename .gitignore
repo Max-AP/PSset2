@@ -1,0 +1,62 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+venv/
+ENV/
+env/
+
+# Environment variables
+.env
+.env.local
+
+# IDE
+.idea/
+.vscode/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+notebooks/.ipynb_checkpoints/
+
+# Docker
+*.log
+docker-compose.override.yml
+
+# PostgreSQL
+*.db
+*.sqlite
+*.sqlite3
+
+# Mage AI
+data-orquestador/logs/
+data-orquestador/mage_data/.cache/
+data-orquestador/mage_data/secrets/
+data-orquestador/mage_data/orquestador/.cache/
+data-orquestador/mage_data/orquestador/.operation_history/
+data-orquestador/mage_data/orquestador/mage-ai.db
+data-orquestador/mage_data/orquestador/pipelines/*/.logs/
+data-orquestador/mage_data/orquestador/pipelines/*/.variables/
+data-orquestador/orquestador/secrets/
+
+# OS
+.DS_Store
+Thumbs.db
