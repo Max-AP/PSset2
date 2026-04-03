@@ -3,36 +3,36 @@ blocks:
   color: null
   configuration: {}
   downstream_blocks:
-  - prepare_raw_data
+  - build_dimensions
   executor_config: null
   executor_type: local_python
   has_callback: false
   language: python
-  name: download_raw_data
+  name: load_from_raw
   retry_config: null
   status: executed
   timeout: null
   type: data_loader
   upstream_blocks: []
-  uuid: download_raw_data
-- all_upstream_blocks_executed: true
+  uuid: load_from_raw
+- all_upstream_blocks_executed: false
   color: null
   configuration: {}
   downstream_blocks:
-  - load_to_postgres_raw
+  - build_fact_table
   executor_config: null
   executor_type: local_python
   has_callback: false
   language: python
-  name: prepare_raw_data
+  name: build_dimensions
   retry_config: null
   status: executed
   timeout: null
   type: transformer
   upstream_blocks:
-  - download_raw_data
-  uuid: prepare_raw_data
-- all_upstream_blocks_executed: true
+  - load_from_raw
+  uuid: build_dimensions
+- all_upstream_blocks_executed: false
   color: null
   configuration: {}
   downstream_blocks: []
@@ -40,26 +40,26 @@ blocks:
   executor_type: local_python
   has_callback: false
   language: python
-  name: load_to_postgres_raw
+  name: build_fact_table
   retry_config: null
   status: executed
   timeout: null
   type: data_exporter
   upstream_blocks:
-  - prepare_raw_data
-  uuid: load_to_postgres_raw
+  - build_dimensions
+  uuid: build_fact_table
 cache_block_output_in_memory: false
 callbacks: []
 concurrency_config: {}
 conditionals: []
-created_at: '2026-04-01 02:31:50.672831+00:00'
+created_at: '2026-04-03 04:02:31.615348+00:00'
 data_integration: null
 description: null
 executor_config: {}
 executor_count: 1
 executor_type: null
 extensions: {}
-name: raw_ingestion_pipeline
+name: clean_transformation_pipeline
 notification_config: {}
 remote_variables_dir: null
 retry_config: {}
@@ -69,6 +69,6 @@ settings:
 spark_config: {}
 tags: []
 type: python
-uuid: raw_ingestion_pipeline
+uuid: clean_transformation_pipeline
 variables_dir: /home/src/mage_data/orquestador
 widgets: []
