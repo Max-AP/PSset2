@@ -37,7 +37,7 @@ def load_data(*args, **kwargs):
     dfs = []
 
     for year in years:
-        for month in range(2, 3):
+        for month in range(1, 2):
             url = base_url.format(year=year, month=month)
             try:
                 print(f"Downloading {year}-{month:02d}...")
