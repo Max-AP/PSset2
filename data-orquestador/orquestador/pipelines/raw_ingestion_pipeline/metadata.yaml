@@ -1,6 +1,23 @@
 blocks:
 - all_upstream_blocks_executed: true
   color: null
+  configuration:
+    dynamic: true
+  downstream_blocks:
+  - download_raw_data
+  executor_config: null
+  executor_type: local_python
+  has_callback: false
+  language: python
+  name: month_generator
+  retry_config: null
+  status: updated
+  timeout: null
+  type: data_loader
+  upstream_blocks: []
+  uuid: month_generator
+- all_upstream_blocks_executed: false
+  color: null
   configuration: {}
   downstream_blocks:
   - prepare_raw_data
@@ -13,9 +30,10 @@ blocks:
   status: updated
   timeout: null
   type: data_loader
-  upstream_blocks: []
+  upstream_blocks:
+  - month_generator
   uuid: download_raw_data
-- all_upstream_blocks_executed: true
+- all_upstream_blocks_executed: false
   color: null
   configuration: {}
   downstream_blocks:
@@ -32,7 +50,7 @@ blocks:
   upstream_blocks:
   - download_raw_data
   uuid: prepare_raw_data
-- all_upstream_blocks_executed: true
+- all_upstream_blocks_executed: false
   color: null
   configuration: {}
   downstream_blocks: []
@@ -42,7 +60,7 @@ blocks:
   language: python
   name: load_to_postgres_raw
   retry_config: null
-  status: executed
+  status: updated
   timeout: null
   type: data_exporter
   upstream_blocks:

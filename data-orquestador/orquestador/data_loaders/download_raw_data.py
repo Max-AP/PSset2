@@ -33,37 +33,32 @@ def load_data(*args, **kwargs):
         'total_amount': 'float32',
     }
 
-    years = range(2015, 2016)
-    dfs = []
+    year = int(kwargs.get('year', 2015))
+    month = int(kwargs.get('month', 1))
 
-    for year in years:
-        for month in range(1, 2):
-            url = base_url.format(year=year, month=month)
-            try:
-                print(f"Downloading {year}-{month:02d}...")
-                df = pd.read_parquet(url, columns=COLUMNS)
-                
-                # Apply dtypes immediately after load
-                for col, dtype in DTYPES.items():
-                    if col in df.columns:
-                        df[col] = df[col].astype(dtype)
+    url = base_url.format(year=year, month=month)
+    try:
+        print(f"Downloading {year}-{month:02d}...")
+        df = pd.read_parquet(url, columns=COLUMNS)
+        
+        # Apply dtypes immediately after load
+        for col, dtype in DTYPES.items():
+            if col in df.columns:
+                df[col] = df[col].astype(dtype)
 
-                df['source_year'] = pd.array([year] * len(df), dtype='int16')
-                df['source_month'] = pd.array([month] * len(df), dtype='int8')
-                
-                dfs.append(df)
-                print(f"✓ {year}-{month:02d}: {len(df)} rows, {df.memory_usage(deep=True).sum() / 1024**2:.1f} MB")
-                gc.collect()
-            except Exception as e:
-                print(f"✗ Skipping {year}-{month:02d}: {e}")
-                continue
-
-    combined = pd.concat(dfs, ignore_index=True)
-    del dfs
+        df['source_year'] = pd.array([year] * len(df), dtype='int16')
+        df['source_month'] = pd.array([month] * len(df), dtype='int8')
+        
+        print(f"✓ {year}-{month:02d}: {len(df)} rows, {df.memory_usage(deep=True).sum() / 1024**2:.1f} MB")
+        gc.collect()
+    except Exception as e:
+        print(f"✗ Skipping {year}-{month:02d}: {e}")
+        return pd.DataFrame(columns=COLUMNS + ['source_year', 'source_month'])
+        
     gc.collect()
     
-    print(f"Total: {len(combined)} rows, {combined.memory_usage(deep=True).sum() / 1024**2:.1f} MB")
-    return combined
+    print(f"Total: {len(df)} rows, {df.memory_usage(deep=True).sum() / 1024**2:.1f} MB")
+    return df
 
 
 @test

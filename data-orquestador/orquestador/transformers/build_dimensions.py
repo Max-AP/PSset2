@@ -3,6 +3,7 @@ if 'transformer' not in globals():
 if 'test' not in globals():
     from mage_ai.data_preparation.decorators import test
 
+import time
 import psycopg2
 from mage_ai.data_preparation.shared.secrets import get_secret_value
 
@@ -13,117 +14,122 @@ def transform(data, *args, **kwargs):
     host = get_secret_value('POSTGRES_HOST')
     port = get_secret_value('POSTGRES_PORT')
     db = get_secret_value('POSTGRES_DB')
-    print("🚀 Transformer started")
 
     conn = psycopg2.connect(host=host, port=port, dbname=db, user=user, password=password)
-    cur = conn.cursor()
+    print("🚀 Transformer started")
 
-    # Single transaction for all dimension builds
-    cur.execute("CREATE SCHEMA IF NOT EXISTS clean;")
+    try:
+        cur = conn.cursor()
+        start = time.time()
 
-    # dim_vendor
-    cur.execute("DROP TABLE IF EXISTS clean.dim_vendor;")
-    cur.execute("""
-        CREATE TABLE clean.dim_vendor AS
-        SELECT
-            ROW_NUMBER() OVER (ORDER BY vendor_id) AS vendor_key,
-            vendor_id,
-            CASE vendor_id
-                WHEN 1 THEN 'Creative Mobile Technologies'
-                WHEN 2 THEN 'VeriFone Inc'
-                ELSE 'Unknown'
-            END AS vendor_name
-        FROM (
-            SELECT DISTINCT vendorid::int AS vendor_id
-            FROM raw.yellow_taxi_trips
-            WHERE vendorid IS NOT NULL
-        ) v;
-    """)
+        # Create clean schema if not exists
+        cur.execute("CREATE SCHEMA IF NOT EXISTS clean;")
+        conn.commit()
 
-    # dim_payment_type
-    cur.execute("DROP TABLE IF EXISTS clean.dim_payment_type;")
-    cur.execute("""
-        CREATE TABLE clean.dim_payment_type AS
-        SELECT
-            ROW_NUMBER() OVER (ORDER BY payment_id) AS payment_key,
-            payment_id,
-            CASE payment_id
-                WHEN 1 THEN 'Credit Card'
-                WHEN 2 THEN 'Cash'
-                WHEN 3 THEN 'No Charge'
-                WHEN 4 THEN 'Dispute'
-                WHEN 5 THEN 'Unknown'
-                WHEN 6 THEN 'Voided Trip'
-                ELSE 'Unknown'
-            END AS payment_description
-        FROM (
-            SELECT DISTINCT payment_type::int AS payment_id
-            FROM raw.yellow_taxi_trips
-            WHERE payment_type IS NOT NULL
-        ) p;
-    """)
+        # --- dim_vendor ---
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS clean.dim_vendor (
+                vendor_key  SERIAL PRIMARY KEY,
+                vendor_id   INT UNIQUE,
+                vendor_name TEXT
+            );
+        """)
+        cur.execute("""
+            INSERT INTO clean.dim_vendor (vendor_id, vendor_name)
+            SELECT
+                vendorid::int AS vendor_id,
+                CASE vendorid::int
+                    WHEN 1 THEN 'Creative Mobile Technologies'
+                    WHEN 2 THEN 'VeriFone Inc'
+                    ELSE 'Unknown'
+                END AS vendor_name
+            FROM (
+                SELECT DISTINCT vendorid
+                FROM raw.yellow_taxi_trips
+                WHERE vendorid IS NOT NULL
+            ) v
+            ON CONFLICT (vendor_id) DO NOTHING;
+        """)
+        cur.execute("CREATE INDEX IF NOT EXISTS idx_dim_vendor_id ON clean.dim_vendor (vendor_id);")
 
-    # dim_pickup_location
-    cur.execute("DROP TABLE IF EXISTS clean.dim_pickup_location;")
-    cur.execute("""
-        CREATE TABLE clean.dim_pickup_location AS
-        SELECT
-            ROW_NUMBER() OVER (ORDER BY location_id) AS pickup_key,
-            location_id
-        FROM (
-            SELECT DISTINCT pulocationid::int AS location_id
+        # --- dim_payment_type ---
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS clean.dim_payment_type (
+                payment_key         SERIAL PRIMARY KEY,
+                payment_id          INT UNIQUE,
+                payment_description TEXT
+            );
+        """)
+        cur.execute("""
+            INSERT INTO clean.dim_payment_type (payment_id, payment_description)
+            SELECT
+                payment_type::int AS payment_id,
+                CASE payment_type::int
+                    WHEN 1 THEN 'Credit Card'
+                    WHEN 2 THEN 'Cash'
+                    WHEN 3 THEN 'No Charge'
+                    WHEN 4 THEN 'Dispute'
+                    WHEN 5 THEN 'Unknown'
+                    WHEN 6 THEN 'Voided Trip'
+                    ELSE 'Unknown'
+                END AS payment_description
+            FROM (
+                SELECT DISTINCT payment_type
+                FROM raw.yellow_taxi_trips
+                WHERE payment_type IS NOT NULL
+            ) p
+            ON CONFLICT (payment_id) DO NOTHING;
+        """)
+        cur.execute("CREATE INDEX IF NOT EXISTS idx_dim_payment_id ON clean.dim_payment_type (payment_id);")
+
+        # --- dim_pickup_location ---
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS clean.dim_pickup_location (
+                pickup_key  SERIAL PRIMARY KEY,
+                location_id INT UNIQUE
+            );
+        """)
+        cur.execute("""
+            INSERT INTO clean.dim_pickup_location (location_id)
+            SELECT DISTINCT pulocationid::int
             FROM raw.yellow_taxi_trips
             WHERE pulocationid IS NOT NULL
-        ) l;
-    """)
+            ON CONFLICT (location_id) DO NOTHING;
+        """)
+        cur.execute("CREATE INDEX IF NOT EXISTS idx_dim_pickup_loc ON clean.dim_pickup_location (location_id);")
 
-    # dim_dropoff_location
-    cur.execute("DROP TABLE IF EXISTS clean.dim_dropoff_location;")
-    cur.execute("""
-        CREATE TABLE clean.dim_dropoff_location AS
-        SELECT
-            ROW_NUMBER() OVER (ORDER BY location_id) AS dropoff_key,
-            location_id
-        FROM (
-            SELECT DISTINCT dolocationid::int AS location_id
+        # --- dim_dropoff_location ---
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS clean.dim_dropoff_location (
+                dropoff_key SERIAL PRIMARY KEY,
+                location_id INT UNIQUE
+            );
+        """)
+        cur.execute("""
+            INSERT INTO clean.dim_dropoff_location (location_id)
+            SELECT DISTINCT dolocationid::int
             FROM raw.yellow_taxi_trips
             WHERE dolocationid IS NOT NULL
-        ) l;
-    """)
+            ON CONFLICT (location_id) DO NOTHING;
+        """)
+        cur.execute("CREATE INDEX IF NOT EXISTS idx_dim_dropoff_loc ON clean.dim_dropoff_location (location_id);")
 
-    # Single commit for all tables
-    conn.commit()
+        conn.commit()
+        print(f"⏱️ Dimensions updated in {round(time.time() - start, 2)}s")
 
-    # Add primary keys and indexes for fast joins in fact table
-    cur.execute("ALTER TABLE clean.dim_vendor ADD PRIMARY KEY (vendor_key);")
-    cur.execute("CREATE INDEX ON clean.dim_vendor (vendor_id);")
+        # Log results
+        for table in ['dim_vendor', 'dim_payment_type', 'dim_pickup_location', 'dim_dropoff_location']:
+            cur.execute(f"SELECT COUNT(*) FROM clean.{table};")
+            print(f"✅ clean.{table}: {cur.fetchone()[0]} rows")
 
-    cur.execute("ALTER TABLE clean.dim_payment_type ADD PRIMARY KEY (payment_key);")
-    cur.execute("CREATE INDEX ON clean.dim_payment_type (payment_id);")
+        cur.close()
 
-    cur.execute("ALTER TABLE clean.dim_pickup_location ADD PRIMARY KEY (pickup_key);")
-    cur.execute("CREATE INDEX ON clean.dim_pickup_location (location_id);")
+    except Exception as e:
+        conn.rollback()
+        print(f"❌ Transformer failed: {e}")
+        raise
+    finally:
+        conn.close()
 
-    cur.execute("ALTER TABLE clean.dim_dropoff_location ADD PRIMARY KEY (dropoff_key);")
-    cur.execute("CREATE INDEX ON clean.dim_dropoff_location (location_id);")
-
-    conn.commit()
-
-    # Log results
-    for table in ['dim_vendor', 'dim_payment_type', 'dim_pickup_location', 'dim_dropoff_location']:
-        cur.execute(f"SELECT COUNT(*) FROM clean.{table};")
-        print(f"✅ clean.{table}: {cur.fetchone()[0]} rows")
-
-    cur.close()
-    conn.close()
-
-    print("✅ All dimensions built and indexed successfully")
+    print(f"✅ All dimensions ready in {round(time.time() - start, 2)}s total")
     return data
-
-
-@test
-def test_output(output, *args) -> None:
-    """
-    Template code for testing the output of the block.
-    """
-    assert output is not None, 'The output is undefined'

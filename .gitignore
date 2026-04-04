@@ -48,13 +48,7 @@ docker-compose.override.yml
 
 # Mage AI
 data-orquestador/logs/
-data-orquestador/mage_data/.cache/
-data-orquestador/mage_data/secrets/
-data-orquestador/mage_data/orquestador/.cache/
-data-orquestador/mage_data/orquestador/.operation_history/
-data-orquestador/mage_data/orquestador/mage-ai.db
-data-orquestador/mage_data/orquestador/pipelines/*/.logs/
-data-orquestador/mage_data/orquestador/pipelines/*/.variables/
+data-orquestador/mage_data/
 data-orquestador/orquestador/secrets/
 
 # OS
