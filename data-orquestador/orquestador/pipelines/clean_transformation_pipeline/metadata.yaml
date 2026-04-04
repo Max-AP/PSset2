@@ -50,7 +50,8 @@ blocks:
   uuid: build_fact_table
 cache_block_output_in_memory: false
 callbacks: []
-concurrency_config: {}
+concurrency_config:
+  block_run_limit: 1
 conditionals: []
 created_at: '2026-04-03 04:02:31.615348+00:00'
 data_integration: null
