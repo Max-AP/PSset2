@@ -47,9 +47,9 @@ docker-compose.override.yml
 *.sqlite3
 
 # Mage AI
-data-orquestador/logs/
-data-orquestador/mage_data/
-data-orquestador/orquestador/secrets/
+mage-volume/logs/
+mage-volume/mage_data/
+mage-volume/orquestador/secrets/
 
 # OS
 .DS_Store

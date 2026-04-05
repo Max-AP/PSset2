@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="SqlDialectMappings">
-    <file url="file://$PROJECT_DIR$/data-orquestador/scheduler/dbt/scheduler_transformations" dialect="GenericSQL" />
+    <file url="file://$PROJECT_DIR$/mage-volume/scheduler/dbt/scheduler_transformations" dialect="GenericSQL" />
   </component>
 </project>

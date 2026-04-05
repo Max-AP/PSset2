@@ -11,10 +11,10 @@ def generate_months(*args, **kwargs):
     increment = 2
 
     starting_year = int(kwargs.get('year', 2015))
-    finishing_year = min(starting_year + increment, 2020)
+    finishing_year = min(starting_year + increment, 2026)
     
     for year in range(starting_year, finishing_year):
-        for month in range(1, 2):              
+        for month in range(1, 13):              
             child_data.append(f"{year}-{month:02d}")
             
             # The keys in this dictionary will become kwargs in your load_data block
