@@ -6,24 +6,21 @@ if 'test' not in globals():
 
 @data_loader
 def generate_months(*args, **kwargs):
-    """
-    Generates a list of years and months to dynamically spawn downstream blocks.
-    """
     child_data = []      # The positional arguments passed to downstream blocks
     child_metadata = []  # The kwargs (including block names) passed downstream
+
+    starting_year = int(kwargs.get('year', 2015))
+    finishing_year = min(starting_year + 4, 2026)
     
-    for year in range(2015, 2016):
-        for month in range(1, 4):
-            # Optional: Stop if we are in the future (e.g., beyond April 2025)
-            # if year == 2025 and month > 4:
-            #     break
-                
+    for year in range(starting_year, finishing_year):
+        for month in range(1, 2):              
             child_data.append(f"{year}-{month:02d}")
             
             # The keys in this dictionary will become kwargs in your load_data block
             child_metadata.append({
                 "block_uuid": f"extract_taxi_{year}_{month:02d}", # Names the dynamic block in the UI
                 "year": year,
+                "end_year": finishing_year,
                 "month": month
             })
             
