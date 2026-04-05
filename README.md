@@ -19,7 +19,7 @@ El objetivo principal es construir una arquitectura de datos robusta y escalable
 
 ## 🏗️ Arquitectura
 
-El sistema se basa en contenedores Docker, garantizando un entorno reproducible y aislado:
+El sistema se basa en contenedores Docker, garantizando un entorno reproducible y aislado. Para más detalles técnicos y diagramas, consulte la [Documentación de Arquitectura](docs/arquitectura.md).
 
 ```text
 ┌─────────────────────────────────────────────────────────┐
@@ -77,15 +77,28 @@ El sistema se basa en contenedores Docker, garantizando un entorno reproducible 
     docker-compose ps
     ```
 
+    ![Estado de contenedores](screenshots/docker%20containers.png)
+    *Figura: Verificación de los tres servicios principales corriendo en Docker.*
+
 ---
 
-## 🔄 Cómo Ejecutar los Pipelines
+## 🔄 Proceso ELT y Ejecución de Pipelines
+
+El flujo de datos se divide en dos capas principales (Raw y Clean) procesando el periodo **2015-2017**. Para una explicación detallada de las reglas de limpieza y orquestación, consulte el [Detalle del Proceso ELT](docs/proceso_elt.md).
 
 1.  Accede a la interfaz de **Mage AI** en `http://localhost:6789`.
 2.  Navega a la sección **Pipelines**.
+
+    ![Pipelines en Mage AI](screenshots/pipelines.png)
+    *Figura: Vista de los pipelines de Ingesta y Transformación.*
+
 3.  **Ejecución de Ingesta (Raw)**:
     *   Selecciona `raw_ingestion_pipeline`.
     *   Ejecuta el pipeline manualmente o crea un *Trigger*.
+
+    ![Triggers configurados](screenshots/triggers.png)
+    *Figura: Configuración de triggers dinámicos.*
+
     *   Este pipeline descarga los datos y los carga en el esquema `raw`.
     *   Al finalizar, el bloque `trigger_clean_pipeline` disparará automáticamente el siguiente pipeline de transformación.
 4.  **Ejecución de Transformación (Clean)**:
@@ -122,10 +135,16 @@ Puedes validar que los datos se cargaron correctamente ejecutando las siguientes
     SELECT COUNT(*) FROM raw.yellow_taxi_trips;
     ```
 
+    ![Consulta de validación raw](screenshots/raw%20table%20query.png)
+    *Figura: Ejecución de consulta para validar la carga inicial en el esquema raw.*
+
 *   **Verificar tabla de hechos**:
     ```sql
     SELECT COUNT(*) FROM clean.fact_trips;
     ```
+
+    ![Tablas en esquema clean](screenshots/clean%20tables.png)
+    *Figura: Visualización de las tablas del modelo dimensional en el esquema clean.*
 
 *   **Consultar métricas por proveedor**:
     ```sql
@@ -137,9 +156,11 @@ Puedes validar que los datos se cargaron correctamente ejecutando las siguientes
 
 ---
 
-## 🧠 Decisiones de Diseño
+## 🧠 Modelo Dimensional
 
-*   **Mage AI**: Elegido por su facilidad para desarrollar pipelines modulares y su integración nativa con Python y SQL, permitiendo ver previsualizaciones de datos en cada bloque.
+La capa `clean` implementa un modelo estrella optimizado. Consulte la [Documentación del Modelo Dimensional](docs/modelo_dimensional.md) para conocer la granularidad, métricas y relaciones detalladas.
+
+*   **Mage AI**: Elegido por su facilidad para desarrollar pipelines modulares.
 *   **Arquitectura de Capas (Medallón)**:
     *   Separación de `raw` y `clean` para permitir el reprocesamiento de datos sin necesidad de volver a descargarlos desde la fuente externa.
 *   **Modelo Dimensional (Estrella)**:

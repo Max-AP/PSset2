@@ -32,13 +32,16 @@ services:
       - PGADMIN_DEFAULT_PASSWORD=root
     ports:
       - "9000:80"
+    volumes:
+      - data-ui-volume:/var/lib/pgadmin
   
   orquestador:
     image: mageai/mageai
     env_file:
       - .env
     volumes:
-      - ./data-orquestador:/home/src
+      - ./mage-volume/orquestador:/home/src/orquestador
+      - ./mage-volume/mage_data:/home/src/mage_data
     ports:
       - "6789:6789"
     environment:
@@ -48,5 +51,7 @@ services:
       - POSTGRES_HOST=${POSTGRES_HOST}
       - POSTGRES_PORT=${POSTGRES_PORT}
     command: /app/run_app.sh mage start orquestador
+
 volumes:
   warehouse-volume:
+  data-ui-volume:

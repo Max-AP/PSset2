@@ -6,17 +6,17 @@ from mage_ai.orchestration.triggers.api import trigger_pipeline
 @custom
 def trigger(*args, **kwargs):
     current_year = int(kwargs.get('year', 2015))
-    increment = 2
+    increment = 1
     next_year = current_year + increment
-    if next_year <= 2025:
+    if next_year < 2018:
         try:
-            print(f"🚀 Triggering the Raw layer pipeline - {next_year} to {min(next_year+increment-1, 2025)}...")
+            print(f"🚀 Triggering the Raw layer pipeline - {next_year} to {next_year+increment-1}...")
             trigger_pipeline(
                 'raw_ingestion_pipeline',
                 variables={'year': next_year},
                 check_status=False,
                 error_on_failure=False,
-                schedule_name=f'api_raw_ingestion_{next_year}_{min(next_year+increment-1, 2025)}'
+                schedule_name=f'api_raw_ingestion_{next_year}_{next_year+increment-1}'
             )
             print(f"✅ {next_year} pipeline triggered successfully!")
         except Exception as e:

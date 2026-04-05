@@ -8,10 +8,10 @@ if 'test' not in globals():
 def generate_months(*args, **kwargs):
     child_data = []      # The positional arguments passed to downstream blocks
     child_metadata = []  # The kwargs (including block names) passed downstream
-    increment = 2
+    increment = 1
 
     starting_year = int(kwargs.get('year', 2015))
-    finishing_year = min(starting_year + increment, 2026)
+    finishing_year = min(starting_year + increment, 2018)
     
     for year in range(starting_year, finishing_year):
         for month in range(1, 13):              
